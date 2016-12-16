@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>Breakdown by Diego Mármol</title>
+	<link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+	<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+	<div class="container">
+		<canvas id="app" width="800" height="600"  style="margin-bottom: 1em;"></canvas>
+		<div class="col-md-12 text-center">
+			<div class="btn-group inline">
+				<button id="pause" class="btn btn-default">Pause</button>
+				<button id="resume" class="btn btn-default">Resume</button>
+			</div>
+		</div>
+	</div>
+
+	<script>
+		/**
+		 * Breakdown MDN game
+		 * https://developer.mozilla.org/en-US/docs/Games/Tutorials/2D_Breakout_game_pure_JavaScript
+		 */
+		var canvas = document.getElementById('app');
+		var ctx = canvas.getContext('2d');
+		var ballRadius = 10;
+		var x = canvas.width / 2;
+		var y = canvas.height - 30;
+		var dx = 3;
+		var dy = -3;
+
+		var paddleHeight = 10;
+		var paddleWidth = 75;
+		var paddleX = (canvas.width - paddleWidth) / 2;
+
+		var rightPressed = false;
+		var leftPressed = false;
+
+		// Bricks data
+		var brickRowCount = 3;
+		var brickColumnCount = 5;
+		var brickWidth = 75;
+		var brickHeight = 20;
+		var brickPadding = 10;
+		var brickOffsetTop = 30;
+		var brickOffsetLeft = 30;
+
+		var bricks = [];
+		for (c = 0; c < brickColumnCount; c++) {
+			bricks[c] = []; // Each column has an array of rows
+			for (r = 0; r < brickRowCount; r++) {
+				bricks[c][r] = { x: 0, y: 0 }
+			}
+		}
+
+		document.addEventListener('keydown', keyDownHandler, false);
+		document.addEventListener('keyup', keyUpHandler, false);
+		document.querySelector('#pause').addEventListener('click', pause, false);
+		document.querySelector('#resume').addEventListener('click', resume, false);
+
+		function keyDownHandler(e) {
+		    if(e.keyCode == 39) {
+		        rightPressed = true;
+		    }
+		    else if(e.keyCode == 37) {
+		        leftPressed = true;
+		    }
+		}
+
+		function keyUpHandler(e) {
+		    if(e.keyCode == 39) {
+		        rightPressed = false;
+		    }
+		    else if(e.keyCode == 37) {
+		        leftPressed = false;
+		    }
+		}
+
+		function drawBall() {
+			ctx.beginPath();
+			ctx.arc(x, y, ballRadius, 0, Math.PI*2);
+			ctx.fillStyle = '#34C986';
+			ctx.fill();
+			ctx.closePath();
+		}
+
+		function drawPaddle() {
+			ctx.beginPath();
+			ctx.rect(paddleX, canvas.height - paddleHeight, paddleWidth, paddleHeight);
+			ctx.fillStyle = '#0095DD';
+			ctx.fill();
+			ctx.closePath();
+		}
+
+		function drawBricks() {
+			for (var c = 0; c < brickColumnCount; c++) {
+				for (var r = 0; r < brickRowCount; r++) {
+					var brick = bricks[c][r];
+					brick.x = (c * (brickWidth + brickPadding)) + brickOffsetLeft,
+					brick.y = (r * (brickHeight + brickPadding)) + brickOffsetTop
+
+					ctx.beginPath();
+					ctx.rect(brick.x, brick.y, brickWidth, brickHeight);
+					ctx.fillStyle = '#347CC9';
+					ctx.fill();
+					ctx.closePath();
+				}
+			}
+		}
+
+		function pause() {
+			clearInterval(movingInterval);
+			movingInterval = false;
+		}
+
+		function resume() {
+			if (!movingInterval) {
+				movingInterval = setInterval(draw, 10);
+			}
+		}
+
+		/**
+		 * Draw the canvas
+		 */
+		function draw() {
+			ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas drawed area
+			drawBall();
+			drawPaddle();
+			drawBricks();
+
+			/** BOUNCE If it has reached the TOP/BOTTOM of the canvas (ballRadius) */
+			// The ball reached the TOP
+			if (y + dy < ballRadius) {
+				dy = -dy; // reverse
+			} else if (y + dy > canvas.height - ballRadius) {
+				// The ball reached the BOTTOM
+				if (x > paddleX && x < paddleX + paddleWidth) {
+					// The ball is OVER the paddle dimensions
+					dy = -dy;
+				} else {
+					alert('Game Over');
+					document.location.reload();
+					pause();
+				}
+			}
+
+			/** BOUNCE If it has reached the LEFT/RIGHT of the canvas (ballRadius) */
+			if (x + dx > canvas.width || x + dx < ballRadius) {
+				dx = -dx;
+			}
+
+			if (rightPressed && paddleX < canvas.width - paddleWidth) {
+				paddleX += 7;
+			} else if (leftPressed && paddleX > 0) {
+				paddleX -= 7;
+			}
+
+			// Move the ball
+		    x += dx;
+		    y += dy;
+		}
+		var movingInterval = setInterval(draw, 10);
+	</script>
+</body>
+</html>
